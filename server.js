@@ -12,7 +12,6 @@ let commandQueue = [];
 
 app.post('/api/command', (req, res) => {
   const { command } = req.body;
-  if (!command) return res.status(400).send("No command provided.");
 
   commandQueue.push({
     value: command,
