@@ -4,29 +4,33 @@ import cors from 'cors';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// In-memory command store
-let lastCommand = null;
+// Command queue (FIFO)
+let commandQueue = [];
 
 app.post('/api/command', (req, res) => {
   const { command } = req.body;
-
   if (!command) return res.status(400).send("No command provided.");
 
-  lastCommand = {
+  commandQueue.push({
     value: command,
     time: Date.now()
-  };
+  });
 
-  console.log("Received command:", command);
-  res.send(`Command '${command}' received`);
+  console.log("Command added:", command);
+  res.send(`Command '${command}' added to queue.`);
 });
 
 app.get('/api/command', (req, res) => {
-  res.json(lastCommand || { value: null });
+  if (commandQueue.length === 0) {
+    return res.json({ value: null });
+  }
+
+  // Return and remove the first command in queue
+  const nextCommand = commandQueue.shift();
+  res.json(nextCommand);
 });
 
 app.listen(PORT, () => {
